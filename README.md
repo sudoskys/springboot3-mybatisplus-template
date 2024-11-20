@@ -1,4 +1,15 @@
-# springboot3-mybatisplus-template
+# springboot3-mybatis-plus-template
 
+SpringBoot 框架模板工程，用于敏捷开发
 
-这个项目结合了前后端技术，提供了一个完整的用户认证和状态管理系统。
+Child repo of https://github.com/sudoskys/Playground
+
+- Mybatis Plus https://baomidou.com/introduce/
+- Nuxt3 https://nuxt.com/
+- Shadcn-Vue https://www.shadcn-vue.com/
+- Flyway https://github.com/flyway/flyway
+
+## Setup
+
+- frontend
+- src
