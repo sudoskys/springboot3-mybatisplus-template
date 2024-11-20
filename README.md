@@ -2,7 +2,7 @@
 
 SpringBoot 框架模板工程，用于敏捷开发
 
-Child repo of https://github.com/sudoskys/Playground
+**This repo is the sub-repo of https://github.com/sudoskys/Playground**
 
 - Mybatis Plus https://baomidou.com/introduce/
 - Nuxt3 https://nuxt.com/
