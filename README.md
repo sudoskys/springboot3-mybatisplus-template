@@ -13,3 +13,11 @@ Child repo of https://github.com/sudoskys/Playground
 
 - frontend
 - src
+
+## Database
+
+postgres 5432
+
+```shell
+docker run --name myPostgresDb -p 5432:5432 -e POSTGRES_USER=postgresUser -e POSTGRES_PASSWORD=postgresPW -e POSTGRES_DB=postgresDB -d postgres
+```
