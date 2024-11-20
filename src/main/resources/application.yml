@@ -1,28 +1,4 @@
-# DataSource Config
 spring:
-  application:
-    name: demo
-
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/postgresDB
-    username: postgresUser
-    password: postgresPW
-
-  flyway:
-    locations:
-      - classpath:db/migration
-    table: db_migrations
-    baseline-on-migrate: true
-
-    # WARN: Do not use in production!
-    clean-disabled: true
-    validate-on-migrate: true
-
-jwt:
-  secret: 0000000000000000000000000000YOU_NEED_TO_CHANGE_IT000000000
-  expiration: 86400
-
-logging:
-  level:
-    '[com.star.demo]': DEBUG
+  profiles:
+    active: dev
+    # Load from application-xxx.yml file
