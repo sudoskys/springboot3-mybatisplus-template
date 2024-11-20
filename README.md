@@ -1,4 +1,4 @@
-# springboot3-mybatis-plus-template
+# springboot3-nuxt3-template
 
 SpringBoot 框架模板工程，用于敏捷开发
 
