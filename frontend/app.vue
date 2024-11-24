@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { Sonner } from '@/components/ui/sonner'
+import {Sonner} from '@/components/ui/sonner'
+import {useHead} from '#imports'
+import {useSeoMeta} from '#imports'
 
 useHead({
   meta: [
-    { charset: 'utf-8' },
-    { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+    {charset: 'utf-8'},
+    {name: 'viewport', content: 'width=device-width, initial-scale=1'},
   ],
   link: [
-   // { rel: 'icon', href: '/favicon.ico' },
+    // { rel: 'icon', href: '/favicon.ico' },
   ],
   htmlAttrs: {
     lang: 'en',
@@ -27,8 +29,8 @@ useSeoMeta({
 
 <template>
   <NuxtLayout vaul-drawer-wrapper>
-    <NuxtPage />
+    <NuxtPage/>
   </NuxtLayout>
-  <Toaster />
-  <Sonner class="pointer-events-auto" />
+  <Toaster/>
+  <Sonner class="pointer-events-auto"/>
 </template>

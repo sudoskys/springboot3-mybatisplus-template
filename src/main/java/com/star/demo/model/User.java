@@ -1,5 +1,8 @@
 package com.star.demo.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +21,9 @@ public class User {
         USER, ADMIN
     }
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
+
     @NotBlank(message = "密码不能为空")
     @Size(min = 6, message = "密码长度至少为6个字符")
     private String password;

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { jwtDecode } from 'jwt-decode'
+import {type AuthResponse, ping} from "~/lib/api";
 
 interface UserState {
   token: string | null

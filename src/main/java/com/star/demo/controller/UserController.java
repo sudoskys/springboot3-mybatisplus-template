@@ -61,7 +61,7 @@ public class UserController {
     @PutMapping("/{id}")
     @RequireRole("ADMIN")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody Map<String, String> updates) {
-        boolean success = userService.updateUser(User.builder().id(id).email(updates.get("email")).role(User.Role.valueOf(updates.get("role"))).password(passwordEncoder.encode(updates.get("password"))).build(), new QueryWrapper<User>().eq("id", id));
+        boolean success = userService.updateUser(User.builder().id(id).email(updates.get("email")).role(User.Role.valueOf(updates.get("role"))).password((updates.get("password"))).build(), id);
         if (!success) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "用户更新失败"));
         }

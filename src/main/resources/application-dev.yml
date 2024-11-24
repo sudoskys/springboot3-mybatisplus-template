@@ -12,12 +12,16 @@ spring:
   flyway:
     locations:
       - classpath:db/migration
-    table: db_migrations
+    table: flyway_migrations
     baseline-on-migrate: true
-
     # WARN: Do not use in production!
     clean-disabled: true
     validate-on-migrate: true
+    fail-on-missing-locations: true
+    url: jdbc:postgresql://localhost:5432/postgresDB
+    user: postgresUser
+    password: postgresPW
+
 
 jwt:
   secret: 0000000000000000000000000000YOU_NEED_TO_CHANGE_IT000000000

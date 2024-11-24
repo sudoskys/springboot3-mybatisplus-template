@@ -1,4 +1,4 @@
 spring:
   profiles:
-    active: dev
+    include: dev
     # Load from application-xxx.yml file

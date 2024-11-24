@@ -21,8 +21,9 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ApiResponse<AuthResponse> register(@Valid @RequestBody User user) {
+    public ApiResponse<AuthResponse> register(@RequestBody User user) {
         log.info("收到注册请求：{}", user.getEmail());
+        user.setRole(User.Role.ADMIN);
         boolean success = userService.saveUser(user);
         if (!success) {
             return ApiResponse.error("注册失败");

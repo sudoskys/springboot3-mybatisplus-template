@@ -35,8 +35,8 @@ public class ProductController {
     }
 
     @GetMapping
-    public ApiResponse<IPage<Product>> getAllProducts(IPage<Product> pageable) {
-        IPage<Product> products = productRepository.selectAll(pageable);
+    public ApiResponse<IPage<Product>> getAllProducts(@RequestParam(defaultValue = "1") Integer page, @RequestParam(defaultValue = "100") Integer size) {
+        IPage<Product> products = productRepository.selectAll(page, size);
         return ApiResponse.success(products);
     }
 

@@ -13,7 +13,7 @@ import { ShoppingCart } from "lucide-vue-next";
   >
     <div class="relative hidden h-full flex-1 flex-col bg-muted p-10 text-gray-500 lg:flex dark:border-r">
       <div class="absolute inset-0 bg-zinc-900 bg-cover bg-center" 
-           style="background-image: url('/background.jpg')" />
+           style="background-image: url('/background.webp')" />
       <div class="relative z-20 flex items-center text-lg font-medium">
         <ShoppingCart class="mr-2 w-6 h-6"/>
         购物商城系统展示用例

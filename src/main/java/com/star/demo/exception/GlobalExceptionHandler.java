@@ -16,6 +16,17 @@ import com.star.demo.common.ErrorCode;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseBody
+    public ApiResponse<?> handleUserNotFoundException(UserNotFoundException ex) {
+        log.error("用户不存在: {}", ex.getMessage());
+        return ApiResponse.error(
+            ex.getMessage(),
+            ErrorCode.USER_NOT_FOUND.getCode()
+        );
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody

@@ -1,5 +1,7 @@
 package com.star.demo.dto.response;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.star.demo.model.User;
 import lombok.Data;
 import lombok.Builder;
@@ -11,6 +13,8 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
+
+    @JsonSerialize(using= ToStringSerializer.class)
     private Long id;
     private String email;
     private String role;

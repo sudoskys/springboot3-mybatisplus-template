@@ -1,270 +1,326 @@
-import type { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
-import { useRuntimeConfig } from '#app'
+import type {AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig} from 'axios'
+import {useRuntimeConfig} from '#app'
 
 import axios from 'axios'
-import { z } from 'zod'
+import {z} from 'zod'
 import useSWRV from 'swrv'
+
 // Error handling
 export class ApiError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-    public errorType?: string | undefined,
-    public caller?: string,
-  ) {
-    super(`${caller ? `[${caller}] ` : ''}${message || status}`)
-    this.name = 'ApiError'
-  }
+    constructor(
+        public status: number,
+        message: string,
+        public errorType?: string | undefined,
+        public caller?: string,
+    ) {
+        super(`${caller ? `[${caller}] ` : ''}${message || status}`)
+        this.name = 'ApiError'
+    }
 }
 
 // API instance
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8080/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+    baseURL: 'http://127.0.0.1:8080/api',
+    headers: {
+        'Content-Type': 'application/json',
+    },
 })
 
 const authResponseSchema = z.object({
-  token: z.string(),
-  user: z.object({
-    id: z.number(),
-    email: z.string(),
-    role: z.string(),
-  }),
+    token: z.string(),
+    user: z.object({
+        id: z.number(),
+        email: z.string(),
+        role: z.string(),
+    }),
 })
 
 export type AuthResponse = z.infer<typeof authResponseSchema>
 
 // 创建一个函数来更新 baseURL
 export function updateApiBaseUrl() {
-  const config = useRuntimeConfig()
-  if (config.public.apiBase) {
-    api.defaults.baseURL = config.public.apiBase as string
-  }
+    const config = useRuntimeConfig()
+    if (config.public.apiBase) {
+        api.defaults.baseURL = config.public.apiBase as string
+    }
 }
 
 // Generic API call function
 async function apiCall<T>(
-  method: 'get' | 'post' | 'put' | 'delete',
-  url: string,
-  data?: any,
-  schema?: z.ZodSchema<T>,
-  config?: AxiosRequestConfig,
-  caller?: string,
+    method: 'get' | 'post' | 'put' | 'delete',
+    url: string,
+    data?: any,
+    schema?: z.ZodSchema<T>,
+    config?: AxiosRequestConfig,
+    caller?: string,
 ): Promise<T> {
-  try {
-    const response = await api[method](url, method === 'get' ? { params: data } : data, config)
-    return schema ? schema.parse(response.data?.data) : response.data?.data
-  }
-  catch (error) {
-    if (error instanceof z.ZodError) {
-      throw new ApiError(400, error.errors.map(err => err.message).join(', '), 'validation_error', caller)
+    try {
+        const response = await api[method](url, method === 'get' ? {params: data} : data, config)
+        return schema ? schema.parse(response.data?.data) : response.data?.data
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            throw new ApiError(400, error.errors.map(err => err.message).join(', '), 'validation_error', caller)
+        }
+        if (axios.isAxiosError(error)) {
+            const axiosError = error as AxiosError<{ message: string, errorType: string }>
+            throw new ApiError(
+                axiosError.response?.status || 500,
+                axiosError.response?.data?.message || '',
+                axiosError.response?.data?.errorType,
+                caller,
+            )
+        }
+        throw new ApiError(500, '', undefined, caller)
     }
-    if (axios.isAxiosError(error)) {
-      const axiosError = error as AxiosError<{ message: string, errorType: string }>
-      throw new ApiError(
-        axiosError.response?.status || 500,
-        axiosError.response?.data?.message || '',
-        axiosError.response?.data?.errorType,
-        caller,
-      )
-    }
-    throw new ApiError(500, '', undefined, caller)
-  }
 }
 
 // 自动添加 token 到请求头
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  if (import.meta.client) {
-    const token = sessionStorage.getItem('access_token')
-    if (token) {
-      config.headers = config.headers ?? {}
-      config.headers.Authorization = `Bearer ${token}`
+    if (import.meta.client) {
+        const token = sessionStorage.getItem('access_token')
+        if (token) {
+            config.headers = config.headers ?? {}
+            config.headers.Authorization = `Bearer ${token}`
+        }
     }
-  }
-  return config
+    return config
 })
 
 // 添加响应拦截器处理 token 过期
 api.interceptors.response.use(
-  response => response,
-  async error => {
-    const originalRequest = error.config
-    
-    // 如果是 401 错误且不是刷新 token 的请求
-    if (error.response?.status === 401 && 
-        !originalRequest._retry &&
-        originalRequest.url !== '/auth/ping') {
-      originalRequest._retry = true
+    response => response,
+    async error => {
+        const originalRequest = error.config
 
-      const userStore = useUserStore()
-      const refreshed = await userStore.refreshToken()
-      
-      if (refreshed) {
-        originalRequest.headers.Authorization = `Bearer ${userStore.token}`
-        return api(originalRequest)
-      }
+        // 如果是 401 错误且不是刷新 token 的请求
+        if (error.response?.status === 401 &&
+            !originalRequest._retry &&
+            originalRequest.url !== '/auth/ping') {
+            originalRequest._retry = true
+
+            const userStore = useUserStore()
+            const refreshed = await userStore.refreshToken()
+
+            if (refreshed) {
+                originalRequest.headers.Authorization = `Bearer ${userStore.token}`
+                return api(originalRequest)
+            }
+        }
+
+        return Promise.reject(error)
     }
-    
-    return Promise.reject(error)
-  }
 )
 
 export function login(email: string, password: string) {
-  return apiCall<AuthResponse>(
-    'post',
-    '/auth/login',
-    { email, password },
-    authResponseSchema,
-    undefined,
-    'login'
-  )
+    return apiCall<AuthResponse>(
+        'post',
+        '/auth/login',
+        {email, password},
+        authResponseSchema,
+        undefined,
+        'login'
+    )
 }
 
 export function register(email: string, password: string) {
-  return apiCall<AuthResponse>(
-    'post',
-    '/auth/register',
-    { email, password },
-    authResponseSchema,
-    undefined,
-    'register'
-  )
+    return apiCall<AuthResponse>(
+        'post',
+        '/auth/register',
+        {email, password},
+        authResponseSchema,
+        undefined,
+        'register'
+    )
 }
 
 export function logout() {
-  return apiCall('post', '/auth/logout', undefined, z.object({
-    message: z.string(),
-  }), undefined, 'logout')
+    return apiCall('post', '/auth/logout', undefined, z.object({
+        message: z.string(),
+    }), undefined, 'logout')
 }
 
 export function getCurrentUser() {
-  return apiCall('get', '/auth/user', undefined, z.object({
-    id: z.string(),
-    email: z.string(),
-    role: z.string(),
-  }), undefined, 'getCurrentUser')
+    return apiCall('get', '/auth/user', undefined, z.object({
+        id: z.string(),
+        email: z.string(),
+        role: z.string(),
+    }), undefined, 'getCurrentUser')
 }
 
 /**
  * 刷新 token
- * @returns 
+ * @returns
  */
 export function ping() {
-  return apiCall<AuthResponse>(
-    'post',
-    '/auth/ping',
-    undefined,
-    authResponseSchema,
-    undefined,
-    'ping'
-  )
+    return apiCall<AuthResponse>(
+        'post',
+        '/auth/ping',
+        undefined,
+        authResponseSchema,
+        undefined,
+        'ping'
+    )
 }
 
 // 定义用户相关的 Schema
 const userSchema = z.object({
-  id: z.number(),
-  email: z.string(),
-  role: z.string(),
+    id: z.number(),
+    email: z.string(),
+    role: z.string(),
 })
 
 type MessageResponse = {
-  message: string
+    message: string
 }
 
-const userListSchema = z.array(userSchema)
+/*
+* 产品 Schema
+* 示例数据：
+```json
+{
+        "id": 2,
+        "imageUrl": "https://via.placeholder.com/500x300?text=Cake+Item",
+        "name": "草莓水果蛋糕",
+        "description": "草莓风味的水果蛋糕，好吃带回家～",
+        "uploaderId": 1,
+        "uploadTime": "2024-11-20T10:23:15.892909Z",
+        "price": 12.0,
+        "eventId": null,
+        "tags": "tag1,tag2"
+}
+```
+* */
+const productSchema = z.object({
+    id: z.number(),
+    imageUrl: z.string().nullable(),
+    name: z.string(),
+    description: z.string().nullable(),
+    uploaderId: z.number().nullable(),
+    uploadTime: z.string().nullable(),
+    price: z.number(),
+    eventId: z.number().nullable(),
+    tags: z.string().nullable(),
+})
 
-type User = z.infer<typeof userSchema>
+const userListSchema = z.array(userSchema)
+const productListSchema = z.array(productSchema)
+
+
+export type User = z.infer<typeof userSchema>
+export type Product = z.infer<typeof productSchema>
+
 // 获取所有用户
 export function getAllUsers() {
-  return apiCall<User[]>(
-    'get',
-    '/users',
-    undefined,
-    userListSchema,
-    undefined,
-    'getAllUsers'
-  )
+    return apiCall<User[]>(
+        'get',
+        '/users',
+        undefined,
+        userListSchema,
+        undefined,
+        'getAllUsers'
+    )
 }
 
 // 使用 SWRV 的用户列表 hook
 export function useUsers() {
-  const { data, error, isValidating, mutate } = useSWRV<User[]>(
-    '/users',
-    () => api.get('/users').then(res => res.data),
-    {
-      // SWRV 配置选项
-      refreshInterval: 0, // 轮询间隔，0 表示禁用
-      dedupingInterval: 2000, // 相同请求的去重时间间隔
-      ttl: 0, // 缓存生存时间，0 表示永久
-      shouldRetryOnError: true, // 错误时是否重试
-      errorRetryInterval: 5000, // 错误重试间隔
-      errorRetryCount: 2, // 最大错误重试次数
-      revalidateOnFocus: false, // 窗口获得焦点时重新验证
-      revalidateDebounce: 0, // 重新验证的防抖时间
-    }
-  )
+    const {data, error, isValidating, mutate} = useSWRV<User[]>(
+        '/users',
+        () => api.get('/users').then(res => res.data),
+        {
+            // SWRV 配置选项
+            refreshInterval: 0, // 轮询间隔，0 表示禁用
+            dedupingInterval: 2000, // 相同请求的去重时间间隔
+            ttl: 0, // 缓存生存时间，0 表示永久
+            shouldRetryOnError: true, // 错误时是否重试
+            errorRetryInterval: 5000, // 错误重试间隔
+            errorRetryCount: 2, // 最大错误重试次数
+            revalidateOnFocus: false, // 窗口获得焦点时重新验证
+            revalidateDebounce: 0, // 重新验证的防抖时间
+        }
+    )
 
-  return {
-    users: data,
-    isLoading: isValidating,
-    isError: error,
-    mutate,
-  }
+    return {
+        users: data,
+        isLoading: isValidating,
+        isError: error,
+        mutate,
+    }
 }
 
 // 获取单个用户
 export function getUserById(id: number) {
-  return apiCall<User>(
-    'get',
-    `/users/${id}`,
-    undefined,
-    userSchema,
-    undefined,
-    'getUserById'
-  )
+    return apiCall<User>(
+        'get',
+        `/users/${id}`,
+        undefined,
+        userSchema,
+        undefined,
+        'getUserById'
+    )
 }
 
 // 创建用户
-export function createUser(email: string, password: string) {
-  if (!email || !password) {
-    throw new ApiError(400, '邮箱和密码不能为空', 'validation_error', 'createUser')
-  }
-  return apiCall<MessageResponse>(
-    'post',
-    '/users',
-    { email, password },
-    undefined,
-    undefined,
-    'createUser'
-  )
+export function createUser(email: string, password: string, role: string) {
+    if (!email || !password || !role) {
+        throw new ApiError(400, '须为非空', 'validation_error', 'createUser')
+    }
+    return apiCall<MessageResponse>(
+        'post',
+        '/users',
+        {email, password, role},
+        undefined,
+        undefined,
+        'createUser'
+    )
 }
 
 // 更新用户
 export function updateUser(id: number, userData: Partial<User>) {
-  return apiCall<MessageResponse>(
-    'put',
-    `/users/${id}`,
-    userData,
-    undefined,
-    undefined,
-    'updateUser'
-  )
+    return apiCall<MessageResponse>(
+        'put',
+        `/users/${id}`,
+        userData,
+        undefined,
+        undefined,
+        'updateUser'
+    )
 }
 
 // 删除用户
 export function deleteUser(id: number) {
-  return apiCall<MessageResponse>(
-    'delete',
-    `/users/${id}`,
-    undefined,
-    undefined,
-    undefined,
-    'deleteUser'
-  )
+    return apiCall<MessageResponse>(
+        'delete',
+        `/users/${id}`,
+        undefined,
+        undefined,
+        undefined,
+        'deleteUser'
+    )
 }
 
-export default defineNuxtPlugin(() => {
-  updateApiBaseUrl()
+
+// 获取所有产品
+const productResponseSchema = z.object({
+    total: z.number(),
+    size: z.number(),
+    current: z.number(),
+    pages: z.number(),
+    records: productListSchema,
 })
+
+export function getAllProducts() {
+    return apiCall<z.infer<typeof productResponseSchema>>(
+        'get',
+        '/products',
+        undefined,
+        productResponseSchema,
+        undefined,
+        'getAllProducts'
+    )
+}
+
+
+export default defineNuxtPlugin(() => {
+    updateApiBaseUrl()
+})
+

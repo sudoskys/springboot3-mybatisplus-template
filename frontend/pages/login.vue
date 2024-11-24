@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+import {definePageMeta} from "#imports";
 definePageMeta({
   layout: 'blank',
 })

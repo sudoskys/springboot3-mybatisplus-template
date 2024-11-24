@@ -11,7 +11,8 @@ public enum ErrorCode {
     NOT_FOUND("404", "资源不存在"),
     EMAIL_ALREADY_EXISTS("USER_001", "邮箱已被注册"),
     INVALID_PASSWORD("USER_002", "密码格式无效"),
-    SYSTEM_ERROR("500", "系统内部错误");
+    SYSTEM_ERROR("500", "系统内部错误"),
+    USER_NOT_FOUND("USER_003", "用户不存在");
 
     private final String code;
     private final String message;
