@@ -8,12 +8,11 @@ CREATE TABLE products
     description TEXT           NOT NULL,
     uploader_id BIGINT         NOT NULL,
     upload_time TIMESTAMPTZ    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    event_id    BIGINT,
+    event_id    jsonb,
     tags        VARCHAR(255)
 );
 
 -- 创建用户
--- postgresql
 CREATE TABLE users
 (
     id       BIGSERIAL PRIMARY KEY,
@@ -21,6 +20,21 @@ CREATE TABLE users
     password VARCHAR(255) NOT NULL,
     role     VARCHAR(20)  NOT NULL DEFAULT 'USER'
 );
+
+-- Create a check constraint to limit the values of role if it does not already exist
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (SELECT 1
+                       FROM information_schema.table_constraints
+                       WHERE constraint_type = 'CHECK'
+                         AND table_name = 'users'
+                         AND constraint_name = 'check_role') THEN
+            ALTER TABLE users
+                ADD CONSTRAINT check_role CHECK (role IN ('USER', 'ADMIN'));
+        END IF;
+    END
+$$;
 
 -- Insert test data into the products table if the table is empty
 INSERT INTO products (id, name, image_url, price, description, uploader_id, event_id, tags)
@@ -47,18 +61,6 @@ VALUES (1, '香蕉水果蛋糕', 'https://via.placeholder.com/500x300?text=Cake+
        (11, '蜂蜜吐司', 'https://via.placeholder.com/500x300?text=Bread+Item', 8.50,
         '甜蜜的蜂蜜吐司，早餐的最佳选择！', 5, NULL, 'tag3,tag10');
 
--- Create a check constraint to limit the values of role if it does not already exist
-DO
-$$
-    BEGIN
-        IF NOT EXISTS (SELECT 1
-                       FROM information_schema.table_constraints
-                       WHERE constraint_type = 'CHECK'
-                         AND table_name = 'users'
-                         AND constraint_name = 'check_role') THEN
-            ALTER TABLE users
-                ADD CONSTRAINT check_role CHECK (role IN ('USER', 'ADMIN'));
-        END IF;
-    END
-$$;
-
+-- Insert test data into the users table if the table is empty
+INSERT INTO users (id, email, password, role)
+VALUES (1, 'demo@gmail.com', 'passwords', 'ADMIN');

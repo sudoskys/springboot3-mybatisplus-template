@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { Home, User2, ChevronUp } from 'lucide-vue-next'
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, 
-         SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar'
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { useUserStore } from '~/stores/user'
-import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
+import {Home, User2, ChevronUp} from 'lucide-vue-next'
+import {
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent,
+  SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter
+} from '@/components/ui/sidebar'
+import {DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem} from '@/components/ui/dropdown-menu'
+import {useUserStore} from '~/stores/user'
+import {storeToRefs} from 'pinia'
+import {useRouter} from 'vue-router'
 
 const userStore = useUserStore()
 const router = useRouter()
-const { user } = storeToRefs(userStore)
+const {user} = storeToRefs(userStore)
 
 // 处理登出
 const handleLogout = async () => {
@@ -30,7 +32,12 @@ const items = [
   },
   {
     title: "用户管理",
-    url: "/users",
+    url: "/dashboard/user",
+    icon: User2,
+  },
+  {
+    title: "产品管理",
+    url: "/dashboard/product",
     icon: User2,
   }
 ]
@@ -41,19 +48,19 @@ const items = [
     <SidebarContent>
       <SidebarGroup>
         <SidebarGroupLabel>应用面板</SidebarGroupLabel>
-          <SidebarMenu>
-            <SidebarMenuItem v-for="item in items" :key="item.title">
-              <SidebarMenuButton as-child>
-                <NuxtLink :to="item.url" class="flex items-center gap-2">
-                  <component :is="item.icon" class="h-4 w-4" />
-                  <span>{{ item.title }}</span>
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+        <SidebarMenu>
+          <SidebarMenuItem v-for="item in items" :key="item.title">
+            <SidebarMenuButton as-child>
+              <NuxtLink :to="item.url" class="flex items-center gap-2">
+                <component :is="item.icon" class="h-4 w-4"/>
+                <span>{{ item.title }}</span>
+              </NuxtLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarGroup>
     </SidebarContent>
-    
+
     <SidebarFooter>
       <SidebarMenu>
         <SidebarMenuItem>
@@ -61,9 +68,9 @@ const items = [
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton>
                 <div class="flex items-center gap-2">
-                  <User2 class="h-4 w-4" />
+                  <User2 class="h-4 w-4"/>
                   <span>{{ user?.email }}</span>
-                  <ChevronUp class="ml-auto h-4 w-4" />
+                  <ChevronUp class="ml-auto h-4 w-4"/>
                 </div>
               </SidebarMenuButton>
             </DropdownMenuTrigger>

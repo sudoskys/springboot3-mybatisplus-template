@@ -2,8 +2,6 @@
 import {definePageMeta} from '#imports'
 import {useUserStore} from '~/stores/user'
 import {storeToRefs} from 'pinia'
-import {useRouter} from 'vue-router'
-import {LogOut} from 'lucide-vue-next'
 import {ref, computed} from 'vue'
 import {useToast} from '@/components/ui/toast'
 import {createUser, updateUser, deleteUser, useUsers} from '~/lib/api'
@@ -17,30 +15,9 @@ definePageMeta({
 
 const userStore = useUserStore()
 const {toast} = useToast()
-const router = useRouter()
 const {user} = storeToRefs(userStore)
 
-const stats = ref([
-  {name: '总用户数', value: '2,345', change: '+12%', changeType: 'increase'},
-  {name: '本月订单', value: '456', change: '+4.75%', changeType: 'increase'},
-  {name: '总收入', value: '¥123,456', change: '+10.18%', changeType: 'increase'},
-  {name: '平均订单金额', value: '¥270', change: '-3.38%', changeType: 'decrease'},
-])
-
 const isAdmin = computed(() => user.value?.role === 'ADMIN')
-
-const handleLogout = async () => {
-  try {
-    await userStore.logout()
-    await router.push('/login')
-  } catch (error) {
-    console.error('登出失败:', error)
-  }
-}
-
-const welcomeMessage = computed(() => {
-  return `欢迎回来${user.value?.email ? ', ' + user.value.email : ''}`
-})
 
 const {users: usersData, isLoading, mutate: mutateUsers} = useUsers()
 const editingId = ref<number | null>(null)
@@ -156,24 +133,9 @@ const handleCreate = async () => {
   <div class="p-6">
     <header class="flex justify-between items-center mb-6">
       <div class="space-y-4">
-        <h1 class="text-3xl font-bold tracking-tight">仪表盘</h1>
-        <client-only>
-          <p class="text-muted-foreground">
-            {{ welcomeMessage }}
-          </p>
-        </client-only>
+        <h1 class="text-3xl font-bold tracking-tight">用户管理</h1>
       </div>
-
-      <Button
-          variant="outline"
-          @click="handleLogout"
-          class="flex items-center gap-2"
-      >
-        <LogOut class="h-4 w-4"/>
-        登出
-      </Button>
     </header>
-
     <client-only>
       <div v-if="!usersData">
         <div class="flex justify-center py-4">
@@ -203,10 +165,6 @@ const handleCreate = async () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <template v-if="usersData">
-                  <pre>{{ JSON.stringify(usersData, null, 2) }}</pre>
-                </template>
-
                 <TableRow v-for="user in usersData" :key="user.id">
                   <TableCell>{{ user.id }}</TableCell>
                   <TableCell>
@@ -279,7 +237,7 @@ const handleCreate = async () => {
             <DialogHeader>
               <DialogTitle>新建用户</DialogTitle>
               <DialogDescription>
-                创建新的系统用户
+                创建用户
               </DialogDescription>
             </DialogHeader>
             <UserForm :form="newUserForm"/>

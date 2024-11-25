@@ -18,7 +18,7 @@ public class ProductController {
 
     @PostMapping
     public ApiResponse<Product> createProduct(@RequestBody Product product) {
-        boolean success = productRepository.save(product);
+        boolean success = productService.saveProduct(product);
         if (!success) {
             return ApiResponse.error("创建商品失败");
         }
@@ -27,7 +27,7 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ApiResponse<Product> getProductById(@PathVariable Long id) {
-        Product product = productRepository.getById(id);
+        Product product = productService.getProductById(id);
         if (product == null) {
             return ApiResponse.error("商品不存在");
         }
@@ -40,9 +40,18 @@ public class ProductController {
         return ApiResponse.success(products);
     }
 
+    @PutMapping("/{id}")
+    public ApiResponse<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+        boolean success = productService.updateProduct(product, id);
+        if (!success) {
+            return ApiResponse.error("更新商品失败");
+        }
+        return ApiResponse.success(null);
+    }
+
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteProductById(@PathVariable Long id) {
-        boolean success = productRepository.removeById(id);
+        boolean success = productService.removeProductById(id);
         if (!success) {
             return ApiResponse.error("删除商品失败");
         }

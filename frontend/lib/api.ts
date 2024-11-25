@@ -191,23 +191,36 @@ type MessageResponse = {
 ```
 * */
 const productSchema = z.object({
-    id: z.number(),
-    imageUrl: z.string().nullable(),
+    id: z.union([z.string(), z.number()]),
+    imageUrl: z
+        .string()
+        .nullable(),
     name: z.string(),
     description: z.string().nullable(),
-    uploaderId: z.number().nullable(),
+    uploaderId: z.union([z.string(), z.number()]).nullable(),
     uploadTime: z.string().nullable(),
     price: z.number(),
-    eventId: z.number().nullable(),
+    eventId: z.any(),
     tags: z.string().nullable(),
-})
+});
+
+// 使用 `transform` 创建一个适用于 UI 的 schema，映射 null -> undefined
+export const productUISchema = productSchema.transform((product) => ({
+    ...product,
+    imageUrl: product.imageUrl ?? undefined,
+    description: product.description ?? undefined,
+    uploaderId: product.uploaderId ?? undefined,
+    uploadTime: product.uploadTime ?? undefined,
+    eventId: product.eventId ?? undefined,
+    tags: product.tags ?? undefined,
+}));
 
 const userListSchema = z.array(userSchema)
 const productListSchema = z.array(productSchema)
-
-
 export type User = z.infer<typeof userSchema>
 export type Product = z.infer<typeof productSchema>
+export type UIProduct = z.infer<typeof productUISchema>;
+
 
 // 获取所有用户
 export function getAllUsers() {
@@ -316,6 +329,79 @@ export function getAllProducts() {
         productResponseSchema,
         undefined,
         'getAllProducts'
+    )
+}
+
+
+export function useProducts(page: number = 1, size: number = 25) {
+    const {data, error, isValidating, mutate} = useSWRV(
+        ['/products', page, size],
+        async () => {
+            const response = await api.get('/products', {
+                params: {page, size}
+            })
+            return response.data?.data
+        },
+        {
+            refreshInterval: 0,
+            dedupingInterval: 2000,
+            ttl: 0,
+            shouldRetryOnError: true,
+            errorRetryInterval: 5000,
+            errorRetryCount: 2,
+            revalidateOnFocus: false,
+            revalidateDebounce: 0,
+        }
+    )
+    return {
+        products: data,
+        isLoading: isValidating,
+        isError: error,
+        mutate,
+    }
+}
+
+export function getProductById(id: number) {
+    return apiCall<Product>(
+        'get',
+        `/products/${id}`,
+        undefined,
+        productSchema,
+        undefined,
+        'getProductById'
+    )
+}
+
+export function createProduct(productData: Partial<Product>) {
+    return apiCall<MessageResponse>(
+        'post',
+        '/products',
+        productData,
+        undefined,
+        undefined,
+        'createProduct'
+    )
+}
+
+export function updateProduct(id: string | number, productData: Partial<Product>) {
+    return apiCall<MessageResponse>(
+        'put',
+        `/products/${id}`,
+        productData,
+        undefined,
+        undefined,
+        'updateProduct'
+    )
+}
+
+export function deleteProduct(id: string | number) {
+    return apiCall<MessageResponse>(
+        'delete',
+        `/products/${id}`,
+        undefined,
+        undefined,
+        undefined,
+        'deleteProduct'
     )
 }
 
