@@ -162,16 +162,26 @@ export function ping() {
     )
 }
 
-// 定义用户相关的 Schema
+type MessageResponse = {
+    message: string
+}
+
+/**
+ * 用户 Schema
+ * 示例数据：
+ * ```json
+ * {
+ *    "id": "1",
+ *    "email": "e@exp.com",
+ *    "role": "ADMIN"
+ *}
+ */
 const userSchema = z.object({
-    id: z.number(),
+    id: z.string(),
     email: z.string(),
     role: z.string(),
 })
 
-type MessageResponse = {
-    message: string
-}
 
 /*
 * 产品 Schema
@@ -204,8 +214,8 @@ const productSchema = z.object({
     tags: z.string().nullable(),
 });
 
-// 使用 `transform` 创建一个适用于 UI 的 schema，映射 null -> undefined
-export const productUISchema = productSchema.transform((product) => ({
+// 映射 null -> undefined
+export const UIProductSchema = productSchema.transform((product) => ({
     ...product,
     imageUrl: product.imageUrl ?? undefined,
     description: product.description ?? undefined,
@@ -219,7 +229,7 @@ const userListSchema = z.array(userSchema)
 const productListSchema = z.array(productSchema)
 export type User = z.infer<typeof userSchema>
 export type Product = z.infer<typeof productSchema>
-export type UIProduct = z.infer<typeof productUISchema>;
+export type UIProduct = z.infer<typeof UIProductSchema>;
 
 
 // 获取所有用户
@@ -376,7 +386,7 @@ export function createProduct(productData: Partial<Product>) {
     return apiCall<MessageResponse>(
         'post',
         '/products',
-        productData,
+        productSchema.parse(productData),
         undefined,
         undefined,
         'createProduct'
@@ -384,10 +394,11 @@ export function createProduct(productData: Partial<Product>) {
 }
 
 export function updateProduct(id: string | number, productData: Partial<Product>) {
+
     return apiCall<MessageResponse>(
         'put',
         `/products/${id}`,
-        productData,
+        productSchema.parse(productData),
         undefined,
         undefined,
         'updateProduct'

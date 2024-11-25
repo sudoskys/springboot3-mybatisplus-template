@@ -4,7 +4,7 @@ import {useUserStore} from '~/stores/user'
 import {storeToRefs} from 'pinia'
 import {ref, computed} from 'vue'
 import {useToast} from '@/components/ui/toast'
-import {type Product, productUISchema, createProduct, updateProduct, deleteProduct, useProducts} from '~/lib/api'
+import {type Product, UIProductSchema, createProduct, updateProduct, deleteProduct, useProducts} from '~/lib/api'
 import {Button} from '@/components/ui/button'
 import UserCard from '@/components/UserCard.vue'
 import ProductForm from '@/components/ProductForm.vue'
@@ -36,7 +36,7 @@ const editForm = ref<UIProduct>({
 
 const startEdit = (product: Product) => {
   editingId.value = product.id
-  editForm.value = {...productUISchema.parse(product)}
+  editForm.value = {...UIProductSchema.parse(product)}
 }
 
 const cancelEdit = () => {

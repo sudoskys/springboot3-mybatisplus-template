@@ -55,7 +55,7 @@ const welcomeMessage = computed(() => {
 
     <client-only>
       <div v-if="isAdmin" class="mt-6">
-        <Button @click="$router.push('/user-management')">用户管理</Button>
+        <Button @click="$router.push('/dashboard/user')">用户管理</Button>
       </div>
       <div v-else class="mt-6">
         <UserCard v-if="user" :user="user"/>

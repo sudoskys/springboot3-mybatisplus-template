@@ -1,6 +1,7 @@
 package com.star.demo.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.star.demo.exception.InvalidPasswordException;
 import com.star.demo.exception.UserNotFoundException;
 import com.star.demo.model.User;
 import com.star.demo.security.JwtUtil;
@@ -50,7 +51,10 @@ public class UserService {
 
     public boolean saveUser(User user) {
         // 更新并创建用户
-        return userRepository.saveOrUpdate(user);
+        if (userRepository.query().eq("email", user.getEmail()).oneOpt().isPresent()) {
+            throw new InvalidPasswordException("A user with this email already exists");
+        }
+        return userRepository.save(user);
     }
 
     public boolean updateUser(User user, Long userId) {
