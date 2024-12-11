@@ -29,7 +29,7 @@ const api = axios.create({
 const authResponseSchema = z.object({
     token: z.string(),
     user: z.object({
-        id: z.number(),
+        id: z.string(),
         email: z.string(),
         role: z.string(),
     }),
@@ -225,11 +225,13 @@ export const UIProductSchema = productSchema.transform((product) => ({
     tags: product.tags ?? undefined,
 }));
 
-const userListSchema = z.array(userSchema)
-const productListSchema = z.array(productSchema)
 export type User = z.infer<typeof userSchema>
 export type Product = z.infer<typeof productSchema>
 export type UIProduct = z.infer<typeof UIProductSchema>;
+
+const userListSchema = z.array(userSchema)
+const productListSchema = z.array(productSchema)
+const UIProductListSchema = z.array(UIProductSchema)
 
 
 // 获取所有用户
@@ -331,7 +333,14 @@ const productResponseSchema = z.object({
     records: productListSchema,
 })
 
-export function getAllProducts() {
+const UIProductResponseSchema = productResponseSchema.transform((data) => ({
+    ...data,
+    records: data.records.map((product) => (
+        UIProductSchema.parse(product)
+    )),
+}))
+
+export async function getAllProducts() {
     return apiCall<z.infer<typeof productResponseSchema>>(
         'get',
         '/products',
@@ -339,7 +348,9 @@ export function getAllProducts() {
         productResponseSchema,
         undefined,
         'getAllProducts'
-    )
+    ).then((data) => {
+        return UIProductResponseSchema.parse(data)
+    })
 }
 
 
@@ -371,7 +382,7 @@ export function useProducts(page: number = 1, size: number = 25) {
     }
 }
 
-export function getProductById(id: number) {
+export async function getProductById(id: number) {
     return apiCall<Product>(
         'get',
         `/products/${id}`,
@@ -379,10 +390,12 @@ export function getProductById(id: number) {
         productSchema,
         undefined,
         'getProductById'
+    ).then(
+        (data) => UIProductSchema.parse(data)
     )
 }
 
-export function createProduct(productData: Partial<Product>) {
+export function createProduct(productData: Partial<UIProduct>) {
     return apiCall<MessageResponse>(
         'post',
         '/products',
@@ -393,8 +406,7 @@ export function createProduct(productData: Partial<Product>) {
     )
 }
 
-export function updateProduct(id: string | number, productData: Partial<Product>) {
-
+export function updateProduct(id: string | number, productData: Partial<UIProduct>) {
     return apiCall<MessageResponse>(
         'put',
         `/products/${id}`,
