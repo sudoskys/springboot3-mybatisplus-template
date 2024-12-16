@@ -504,11 +504,22 @@ export function updateOrder(id: string, data: Partial<Order>) {
     )
 }
 
-export function getAllOrders() {
+export function deleteOrder(id: string) {
+    return apiCall<void>(
+        'delete',
+        `/orders/${id}`,
+        undefined,
+        undefined,
+        undefined,
+        'deleteOrder'
+    )
+}
+
+export function getAllOrders(page: number = 1, size: number = 10) {
     return apiCall<Order[]>(
         'get',
         '/orders',
-        undefined,
+        { page, size },
         z.array(orderSchema),
         undefined,
         'getAllOrders'

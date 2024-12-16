@@ -41,8 +41,11 @@ public class OrderController {
 
     @GetMapping
     @RequireRole("ADMIN")
-    public ApiResponse<List<Order>> getAllOrders() {
-        return ApiResponse.success(orderService.getAllOrders());
+    public ApiResponse<List<Order>> getAllOrders(
+        @RequestParam(defaultValue = "1") int page,
+        @RequestParam(defaultValue = "10") int size
+    ) {
+        return ApiResponse.success(orderService.getAllOrders(page, size));
     }
 
     @GetMapping("/user")

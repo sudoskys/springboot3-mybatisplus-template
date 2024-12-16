@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Settings, ShoppingCart } from 'lucide-vue-next';
+import { Settings, ShoppingCart, ClipboardList } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { definePageMeta, navigateTo } from '#imports';
@@ -41,6 +41,10 @@ onMounted(async () => {
         <div class="flex justify-between items-center">
           <h1 class="text-2xl font-bold text-primary">网上商城</h1>
           <div class="flex items-center gap-4">
+            <Button variant="ghost" @click="navigateTo('/orders')" class="hover:bg-gray-100">
+              <ClipboardList class="mr-2 w-5 h-5" />
+              我的订单
+            </Button>
             <Button variant="ghost" @click="toggleCart" class="hover:bg-gray-100">
               <ShoppingCart class="mr-2 w-5 h-5" />
               <span class="relative">

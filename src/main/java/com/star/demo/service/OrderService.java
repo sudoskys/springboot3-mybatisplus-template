@@ -1,6 +1,7 @@
 package com.star.demo.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.star.demo.common.ErrorCode;
 import com.star.demo.exception.BusinessException;
 import com.star.demo.model.Order;
@@ -74,8 +75,11 @@ public class OrderService {
         return loadOrderItems(order);
     }
 
-    public List<Order> getAllOrders() {
-        return orderRepository.list().stream()
+    public List<Order> getAllOrders(int page, int size) {
+        Page<Order> pageParam = new Page<>(page, size);
+        QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("created_at");
+        return orderRepository.page(pageParam, queryWrapper).getRecords().stream()
             .map(this::loadOrderItems)
             .collect(Collectors.toList());
     }
