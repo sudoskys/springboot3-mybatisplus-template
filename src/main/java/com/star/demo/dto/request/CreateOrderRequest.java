@@ -6,6 +6,8 @@ import java.util.List;
 @Data
 public class CreateOrderRequest {
     private List<OrderProduct> products;
+    private String address;
+    private String phone;
 
     @Data
     public static class OrderProduct {

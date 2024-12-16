@@ -39,6 +39,11 @@ const items = [
     title: "产品管理",
     url: "/dashboard/product",
     icon: User2,
+  },
+  {
+    title: "订单管理",
+    url: "/dashboard/orders",
+    icon: User2,
   }
 ]
 </script>

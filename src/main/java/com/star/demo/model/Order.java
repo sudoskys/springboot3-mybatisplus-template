@@ -23,12 +23,16 @@ public class Order {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String address;
+    private String phone;
     
     @TableField(exist = false)
     private List<OrderItem> items;
     
     public static Order fromRequest(CreateOrderRequest request) {
         Order order = new Order();
+        order.setAddress(request.getAddress());
+        order.setPhone(request.getPhone());
         order.setItems(request.getProducts().stream()
             .map(p -> OrderItem.builder()
                 .productId(p.getProductId())

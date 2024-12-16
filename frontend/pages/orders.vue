@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { getAllOrders, updateOrder } from '@/lib/api';
+import { getCurrentUserOrders, getProductById } from '@/lib/api';
 import type { Order, UIProduct } from '@/lib/api';
-import { getProductById } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/toast/use-toast';
 
 const orders = ref<Order[]>([]);
 const productCache = new Map<string | number, UIProduct>();
 const loading = ref(false);
-const { toast } = useToast();
 
 async function loadProductDetails(productId: string | number) {
   if (!productCache.has(productId)) {
@@ -22,7 +18,8 @@ async function loadProductDetails(productId: string | number) {
 async function loadOrders() {
   loading.value = true;
   try {
-    orders.value = await getAllOrders();
+    orders.value = await getCurrentUserOrders();
+    // 预加载所有商品信息
     for (const order of orders.value) {
       if (order.items) {
         await Promise.all(order.items.map(item => loadProductDetails(item.productId)));
@@ -35,23 +32,6 @@ async function loadOrders() {
   }
 }
 
-async function completeOrder(orderId: string) {
-  try {
-    await updateOrder(orderId, { status: 'COMPLETED' });
-    toast({
-      title: "订单状态更新成功",
-      description: "订单已标记为完成"
-    });
-    await loadOrders();
-  } catch (error: any) {
-    toast({
-      title: "更新失败",
-      description: error.message,
-      variant: "destructive"
-    });
-  }
-}
-
 onMounted(() => {
   loadOrders();
 });
@@ -59,58 +39,43 @@ onMounted(() => {
 
 <template>
   <div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-6">订单管理</h1>
+    <h1 class="text-2xl font-bold mb-6">我的订单</h1>
     
     <div v-if="loading" class="text-center py-8">
       加载中...
+    </div>
+    
+    <div v-else-if="orders.length === 0" class="text-center py-8 text-gray-500">
+      暂无订单
     </div>
     
     <div v-else class="space-y-4">
       <div v-for="order in orders" :key="order.id" 
            class="border rounded-lg p-4 shadow-sm">
         <div class="flex justify-between items-center mb-4">
-          <div>
-            <span class="text-sm text-gray-500">订单号：{{ order.id }}</span>
-            <span class="ml-4 text-sm">用户ID: {{ order.userId }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-medium">{{ order.status }}</span>
-            <Button 
-              v-if="order.status === 'PENDING'"
-              size="sm"
-              @click="completeOrder(String(order.id))"
-            >
-              完成订单
-            </Button>
-          </div>
+          <span class="text-sm text-gray-500">订单号：{{ order.id }}</span>
+          <span class="text-sm font-medium">{{ order.status }}</span>
         </div>
         
-        <!-- 联系信息 -->
-        <div class="mb-4 text-sm text-gray-600">
-          <div>收货地址: {{ order.address }}</div>
-          <div>联系电话: {{ order.phone }}</div>
-        </div>
-        
-        <!-- 商品列表 -->
         <div class="space-y-2">
-          <div v-for="item in order.items" :key="item.id!" 
+          <div v-for="product in order.items" :key="product.productId" 
                class="flex justify-between items-center">
             <div class="flex items-center gap-4">
               <img 
-                :src="productCache.get(item.productId)?.imageUrl" 
-                :alt="productCache.get(item.productId)?.name"
+                :src="productCache.get(product.productId)?.imageUrl" 
+                :alt="productCache.get(product.productId)?.name"
                 class="w-16 h-16 object-cover rounded"
               />
               <div>
-                <div class="font-medium">{{ productCache.get(item.productId)?.name }}</div>
+                <div class="font-medium">{{ productCache.get(product.productId)?.name }}</div>
                 <div class="text-sm text-gray-500">
-                  {{ productCache.get(item.productId)?.description }}
+                  {{ productCache.get(product.productId)?.description }}
                 </div>
               </div>
             </div>
             <div class="text-right">
-              <div>数量: {{ item.quantity }}</div>
-              <div>单价: ¥{{ item.price }}</div>
+              <div>数量: {{ product.quantity }}</div>
+              <div>单价: ¥{{ product.price }}</div>
             </div>
           </div>
         </div>

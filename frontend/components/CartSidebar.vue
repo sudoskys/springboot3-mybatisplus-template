@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { X, Trash2 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/composables/useCart';
@@ -18,17 +18,33 @@ const { isOpen, onClose } = defineProps<{
   onClose: () => void;
 }>();
 
+const address = ref('');
+const phone = ref('');
+
 async function handleCheckout() {
   try {
+    if (!address.value || !phone.value) {
+      toast({
+        title: "请填写收货信息",
+        description: "收货地址和联系电话不能为空",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const orderData = {
       products: cart.value.map(item => ({
         productId: item.id,
         quantity: item.quantity
-      }))
+      })),
+      address: address.value,
+      phone: phone.value
     };
     
     await createOrder(orderData);
     clearCart();
+    address.value = '';
+    phone.value = '';
     toast({
       title: "订单创建成功",
       description: "您的订单已成功提交"
@@ -79,6 +95,23 @@ async function handleCheckout() {
         </div>
       </div>
       <div class="p-4 border-t">
+        <div class="space-y-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">收货地址</label>
+            <input v-model="address" 
+                   type="text" 
+                   class="w-full p-2 border rounded"
+                   placeholder="请输入收货地址" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">联系电话</label>
+            <input v-model="phone" 
+                   type="tel" 
+                   class="w-full p-2 border rounded"
+                   placeholder="请输入联系电话" />
+          </div>
+        </div>
+        
         <div class="flex justify-between items-center mb-4">
           <span class="font-semibold">总计：</span>
           <span class="font-bold text-xl">¥{{ totalPrice.toFixed(2) }}</span>

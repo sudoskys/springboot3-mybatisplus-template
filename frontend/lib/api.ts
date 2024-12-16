@@ -442,7 +442,9 @@ const orderSchema = z.object({
     totalPrice: z.number(),
     status: z.string(),
     createdAt: z.string().nullable(),
-    updatedAt: z.string().nullable()
+    updatedAt: z.string().nullable(),
+    address: z.string().nullable(),
+    phone: z.string().nullable()
 });
 
 export type Order = z.infer<typeof orderSchema>
@@ -453,6 +455,8 @@ export interface CreateOrderRequest {
         productId: string | number;
         quantity: number;
     }>;
+    address: string;
+    phone: string;
 }
 
 // 添加订单相关的API函数
@@ -486,6 +490,28 @@ export function getCurrentUserOrders() {
         z.array(orderSchema),
         undefined,
         'getCurrentUserOrders'
+    )
+}
+
+export function updateOrder(id: string, data: Partial<Order>) {
+    return apiCall<Order>(
+        'put',
+        `/orders/${id}`,
+        data,
+        undefined,
+        undefined,
+        'updateOrder'
+    )
+}
+
+export function getAllOrders() {
+    return apiCall<Order[]>(
+        'get',
+        '/orders',
+        undefined,
+        z.array(orderSchema),
+        undefined,
+        'getAllOrders'
     )
 }
 
