@@ -1,6 +1,5 @@
 package com.star.demo.database;
 
-import com.star.demo.mapper.ProductMapper;
 import com.star.demo.model.Product;
 import com.star.demo.service.ProductRepository;
 import org.junit.jupiter.api.Test;

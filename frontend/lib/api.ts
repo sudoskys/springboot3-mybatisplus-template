@@ -428,6 +428,66 @@ export function deleteProduct(id: string | number) {
     )
 }
 
+// 在已有的schema定义后添加订单相关的schema
+const orderSchema = z.object({
+    id: z.union([z.string(), z.number()]),
+    userId: z.union([z.string(), z.number()]),
+    items: z.array(z.object({
+        id: z.union([z.string(), z.number()]).nullable(),
+        orderId: z.union([z.string(), z.number()]).nullable(),
+        productId: z.union([z.string(), z.number()]),
+        quantity: z.number(),
+        price: z.number()
+    })).nullable(),
+    totalPrice: z.number(),
+    status: z.string(),
+    createdAt: z.string().nullable(),
+    updatedAt: z.string().nullable()
+});
+
+export type Order = z.infer<typeof orderSchema>
+
+// 创建订单请求
+export interface CreateOrderRequest {
+    products: Array<{
+        productId: string | number;
+        quantity: number;
+    }>;
+}
+
+// 添加订单相关的API函数
+export function createOrder(orderData: CreateOrderRequest) {
+    return apiCall<Order>(
+        'post',
+        '/orders',
+        orderData,
+        orderSchema,
+        undefined,
+        'createOrder'
+    )
+}
+
+export function getOrder(id: number) {
+    return apiCall<Order>(
+        'get',
+        `/orders/${id}`,
+        undefined,
+        orderSchema,
+        undefined,
+        'getOrder'
+    )
+}
+
+export function getCurrentUserOrders() {
+    return apiCall<Order[]>(
+        'get',
+        '/orders/user',
+        undefined,
+        z.array(orderSchema),
+        undefined,
+        'getCurrentUserOrders'
+    )
+}
 
 export default defineNuxtPlugin(() => {
     updateApiBaseUrl()

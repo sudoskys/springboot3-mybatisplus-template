@@ -1,6 +1,5 @@
 package com.star.demo.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.star.demo.annotation.RequireRole;
 import com.star.demo.model.User;
 import com.star.demo.security.JwtUtil;
@@ -11,21 +10,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-    private final BCryptPasswordEncoder passwordEncoder;
+    // private final BCryptPasswordEncoder passwordEncoder;
     private final UserService userService;
 
-    public UserController(BCryptPasswordEncoder passwordEncoder, JwtUtil jwtUtil, UserService userService) {
-        this.passwordEncoder = passwordEncoder;
+    public UserController(JwtUtil jwtUtil, UserService userService) {
+        // this.passwordEncoder = passwordEncoder;
         this.userService = userService;
     }
 

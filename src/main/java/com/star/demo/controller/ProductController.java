@@ -5,7 +5,6 @@ import com.star.demo.model.Product;
 import com.star.demo.service.ProductRepository;
 import com.star.demo.service.ProductService;
 import com.star.demo.common.ApiResponse;
-import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import lombok.RequiredArgsConstructor;
 

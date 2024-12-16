@@ -3,17 +3,45 @@ import { computed } from 'vue';
 import { X, Trash2 } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/composables/useCart';
+import { createOrder } from '@/lib/api';
+import { useToast } from '@/components/ui/toast/use-toast';
 
 const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
+const { toast } = useToast();
 
 const totalPrice = computed(() => {
   return cart.value.reduce((total, item) => total + item.price * item.quantity, 0);
 });
 
-defineProps<{
+const { isOpen, onClose } = defineProps<{
   isOpen: boolean;
   onClose: () => void;
 }>();
+
+async function handleCheckout() {
+  try {
+    const orderData = {
+      products: cart.value.map(item => ({
+        productId: item.id,
+        quantity: item.quantity
+      }))
+    };
+    
+    await createOrder(orderData);
+    clearCart();
+    toast({
+      title: "订单创建成功",
+      description: "您的订单已成功提交"
+    });
+    onClose();
+  } catch (error: any) {
+    toast({
+      title: "订单创建失败",
+      description: error.message,
+      variant: "destructive"
+    });
+  }
+}
 </script>
 
 <template>
@@ -39,12 +67,12 @@ defineProps<{
               <h3 class="font-semibold">{{ item.name }}</h3>
               <p class="text-sm text-gray-500">¥{{ item.price }}</p>
               <div class="flex items-center mt-2">
-                <Button variant="outline" size="icon" @click="updateQuantity(item.id, item.quantity - 1)">-</Button>
+                <Button variant="outline" size="icon" @click="updateQuantity(item.id.toString(), item.quantity - 1)">-</Button>
                 <span class="mx-2">{{ item.quantity }}</span>
-                <Button variant="outline" size="icon" @click="updateQuantity(item.id, item.quantity + 1)">+</Button>
+                <Button variant="outline" size="icon" @click="updateQuantity(item.id.toString(), item.quantity + 1)">+</Button>
               </div>
             </div>
-            <Button variant="ghost" size="icon" @click="removeFromCart(item.id)">
+            <Button variant="ghost" size="icon" @click="removeFromCart(item.id.toString())">
               <Trash2 class="h-5 w-5" />
             </Button>
           </div>
@@ -55,7 +83,12 @@ defineProps<{
           <span class="font-semibold">总计：</span>
           <span class="font-bold text-xl">¥{{ totalPrice.toFixed(2) }}</span>
         </div>
-        <Button class="w-full" size="lg" :disabled="cart.length === 0" @click="clearCart">
+        <Button 
+          class="w-full" 
+          size="lg" 
+          :disabled="cart.length === 0" 
+          @click="handleCheckout"
+        >
           结算
         </Button>
       </div>
